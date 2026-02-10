@@ -1,3 +1,4 @@
+from routing.nearest_hospital import find_nearest_hospital
 from routing.nearest_node import find_nearest_node
 from routing.sample_map import create_sample_graph
 from routing.dijkstra import dijkstra
@@ -78,3 +79,10 @@ def nearest_node(lat: float, lon: float):
         "lon": lon,
         "nearest_node": node
     }
+
+
+
+@app.get("/nearest-hospital")
+def nearest_hospital(start_node: str):
+    result = find_nearest_hospital(start_node)
+    return result

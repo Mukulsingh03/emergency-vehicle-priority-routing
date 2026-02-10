@@ -1,4 +1,4 @@
 HOSPITALS = {
-    "HOSP1": "C",
-    "HOSP2": "B"
+    "HOSPITAL_1": "C",
+    "HOSPITAL_2": "B"
 }
