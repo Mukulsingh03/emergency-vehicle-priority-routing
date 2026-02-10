@@ -1,3 +1,4 @@
+from routing.route_from_gps import compute_route_from_gps
 from routing.nearest_hospital import find_nearest_hospital
 from routing.nearest_node import find_nearest_node
 from routing.sample_map import create_sample_graph
@@ -85,4 +86,10 @@ def nearest_node(lat: float, lon: float):
 @app.get("/nearest-hospital")
 def nearest_hospital(start_node: str):
     result = find_nearest_hospital(start_node)
+    return result
+
+
+@app.get("/route-from-gps")
+def route_from_gps(lat: float, lon: float):
+    result = compute_route_from_gps(lat, lon)
     return result
