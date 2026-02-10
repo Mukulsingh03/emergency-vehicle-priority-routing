@@ -25,7 +25,7 @@ class SignalFSM:
     def enter_normal(self):
         self._set_state(STATE_NORMAL)
 
-    def enter_preempt(self, ambulance_id, max_preempt_sec=30):
+    def enter_preempt(self, ambulance_id, max_preempt_sec=120):
         self._set_state(
             STATE_PREEMPT,
             owner=ambulance_id,

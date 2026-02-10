@@ -90,6 +90,7 @@ def nearest_hospital(start_node: str):
 
 
 @app.get("/route-from-gps")
-def route_from_gps(lat: float, lon: float):
-    result = compute_route_from_gps(lat, lon)
+def route_from_gps(lat: float, lon: float, ambulance_id: str):
+    result = compute_route_from_gps(lat, lon, redis_client, ambulance_id)
     return result
+
