@@ -1,5 +1,7 @@
+from routing.nearest_node import find_nearest_node
 from routing.sample_map import create_sample_graph
 from routing.dijkstra import dijkstra
+
 
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -65,3 +67,14 @@ def compute_route(start: str, end: str):
         "estimated_time": time_taken
     }
 
+
+
+@app.get("/nearest-node")
+def nearest_node(lat: float, lon: float):
+    node = find_nearest_node(lat, lon)
+    
+    return {
+        "lat": lat,
+        "lon": lon,
+        "nearest_node": node
+    }
