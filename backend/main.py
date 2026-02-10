@@ -1,7 +1,11 @@
+from routing.sample_map import create_sample_graph
+from routing.dijkstra import dijkstra
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 import redis
 import time 
+
 app= FastAPI()
 
 #connect to redis
@@ -51,4 +55,13 @@ def update_ambulance_gps(data: AmbulanceGPS):
         "ambulance_id": data.ambulance_id
     }
 
+@app.get("/route")
+def compute_route(start: str, end: str):
+    graph = create_sample_graph()
+    path, time_taken = dijkstra(graph, start, end)
+
+    return {
+        "path": path,
+        "estimated_time": time_taken
+    }
 
