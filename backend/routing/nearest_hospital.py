@@ -10,16 +10,30 @@ def find_nearest_hospital(start_node):
     best_path = None
 
     for hospital_id, hospital_node in HOSPITALS.items():
+
+        # Special case: already at hospital
+        if start_node == hospital_node:
+            return {
+                "hospital_id": hospital_id,
+                "path": [start_node],
+                "estimated_time": 0
+            }
+
         path, travel_time = dijkstra(graph, start_node, hospital_node)
+
+        if path is None:
+            continue  # no valid route
 
         if travel_time < best_time:
             best_time = travel_time
             best_hospital = hospital_id
             best_path = path
 
+    if best_path is None:
+        raise ValueError("No reachable hospital from current node")
 
     return {
         "hospital_id": best_hospital,
         "path": best_path,
         "estimated_time": best_time
-    }        
+    }

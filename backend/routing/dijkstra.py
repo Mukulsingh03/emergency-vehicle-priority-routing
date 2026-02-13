@@ -21,7 +21,12 @@ def dijkstra(graph, start, end):
                 previous[neighbor] = current_node
                 heapq.heappush(pq, (new_dist, neighbor)
                                )
-                
+    
+    if end not in previous:
+        return None, float("inf")
+
+
+
     path = []
     node = end
 

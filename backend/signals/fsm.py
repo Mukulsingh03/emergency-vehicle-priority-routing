@@ -47,4 +47,10 @@ class SignalFSM:
 
         return current.get("owner") == ambulance_id
 
+    
+    def complete_recovery(self, delay_sec=5):
+        time.sleep(delay_sec)
+        
+        self.enter_normal()
+
         
