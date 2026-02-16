@@ -1,0 +1,166 @@
+🚑 Emergency Vehicle Priority Routing & Signal Preemption System
+
+A real-time, fault-tolerant traffic signal preemption system that dynamically routes ambulances to the nearest hospital while safely coordinating traffic signals under single and multi-ambulance contention.
+
+🚀 Why this project exists
+
+Urban emergency response suffers from:
+
+Traffic congestion
+
+Signal delays
+
+Lack of coordination between ambulances and traffic infrastructure
+
+This project simulates a city-scale emergency routing system that:
+
+Tracks ambulances in real time
+
+Computes fastest routes to hospitals
+
+Preempts traffic signals safely
+
+Handles failures (GPS loss, backend crash)
+
+Resolves conflicts when multiple ambulances compete for the same signal
+
+
+🚀 Why this project exists
+
+Urban emergency response suffers from:
+
+Traffic congestion
+
+Signal delays
+
+Lack of coordination between ambulances and traffic infrastructure
+
+This project simulates a city-scale emergency routing system that:
+
+Tracks ambulances in real time
+
+Computes fastest routes to hospitals
+
+Preempts traffic signals safely
+
+Handles failures (GPS loss, backend crash)
+
+Resolves conflicts when multiple ambulances compete for the same signal
+
+
+🧠 Key Engineering Challenges Solved
+
+Real-time telemetry ingestion
+
+Fault tolerance using Redis TTL
+
+Finite State Machine–based signal control
+
+Distributed conflict resolution (no deadlock, no oscillation)
+
+Multi-ambulance priority arbitration
+
+
+🏗️ System Architecture
+Ambulance App (simulated)
+        |
+        |  GPS updates (HTTP)
+        v
+FastAPI Backend
+        |
+        |  Routing + arbitration logic
+        v
+Redis (real-time state & locks)
+        |
+        |  FSM-controlled transitions
+        v
+Traffic Signal Controller
+
+
+
+🔄 Core Workflow
+1️⃣ Live GPS ingestion
+
+Ambulance sends GPS periodically
+
+Backend maps GPS → nearest road node
+
+State stored in Redis with TTL
+
+2️⃣ Route computation
+
+Nearest hospital selected
+
+Shortest path computed
+
+Planned route stored in Redis
+
+3️⃣ Signal preemption
+
+Upcoming signal identified
+
+Ambulance submits a claim
+
+Arbitration decides winner
+
+FSM transitions signal to PREEMPT
+
+4️⃣ Recovery & safety
+
+After ambulance passes → signal recovers
+
+If GPS is lost → all signals immediately cancel
+
+No stuck green states possible
+
+
+
+🚦 Traffic Signal FSM
+
+Each signal runs a deterministic FSM:
+
+NORMAL → PREEMPT → RECOVERY → NORMAL
+
+Guarantees
+
+No illegal transitions
+
+No permanent preemption
+
+Safe fallback on failures
+
+FSM manages state only — ownership is handled separately.
+
+
+
+⚖️ Multi-Ambulance Conflict Resolution
+
+When multiple ambulances approach the same signal:
+
+Arbitration model
+
+Each ambulance submits a claim to Redis
+
+Claims stored in a Redis ZSET
+
+One deterministic winner is elected
+
+Priority score
+priority =
+  100 × emergency_level
++ 10  × (1 / distance_to_signal)
++ 1   × waiting_time
+
+Properties guaranteed
+
+✅ Single winner
+
+✅ No deadlock
+
+✅ No oscillation
+
+✅ Fairness (no starvation)
+
+✅ Deterministic behavior
+
+Ownership is sticky until release, preventing flip-flopping.
