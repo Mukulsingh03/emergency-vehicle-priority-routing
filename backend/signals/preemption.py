@@ -1,3 +1,6 @@
+import time
+from signals.arbitration import submit_claim, compute_priority
+from signals.arbitration import elect_winner
 from signals.signal_map import SIGNAL_MAP
 from signals.fsm import SignalFSM
 
@@ -7,18 +10,45 @@ def trigger_signal_preemption(redis_client, route, ambulance_id):
     """
 
     for node in route:
-        if node in SIGNAL_MAP:
-            signal_id = SIGNAL_MAP[node]
+        if node not in SIGNAL_MAP:
+            continue
 
-            fsm = SignalFSM(redis_client, signal_id)
+        signal_id = SIGNAL_MAP[node]
+        fsm = SignalFSM(redis_client, signal_id)
 
-            if fsm.can_preempt(ambulance_id):
-                fsm.enter_preempt(ambulance_id)
-                print(f"[PREEMPT] Signal {signal_id} preempted by {ambulance_id}")
-            else:
-                print(f"[SKIP] Signal {signal_id} already owned")
+        waiting_since = int(time.time())
+        emergency_level = 1  
+        distance_to_signal = route.index(node) + 1
 
-            break  # preempt only ONE signal ahead
+        priority = compute_priority(
+            emergency_level,
+            distance_to_signal,
+            waiting_since
+        )
+
+        submit_claim(
+            redis_client,
+            signal_id,
+            ambulance_id,
+            priority
+        )  
+
+        # Arbitration decides WHO may preempt
+        winner = elect_winner(redis_client, signal_id)
+
+        print(f"Signal {signal_id} winner: {winner}")
+        
+        if winner == ambulance_id and fsm.can_preempt(ambulance_id):
+            fsm.enter_preempt(ambulance_id)
+            print(f"[PREEMPT] Signal {signal_id} preempted by {ambulance_id}")
+        else:
+            print(
+                f"[SKIP] Signal {signal_id} not granted to {ambulance_id}, "
+                f"winner={winner}"
+            )
+
+        break  # preempt only ONE signal ahead
+
 
 
 def release_signal_if_passed(redis_client, route, current_node, ambulance_id):

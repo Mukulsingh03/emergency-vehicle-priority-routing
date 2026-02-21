@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emergency Routing System</title>
+</head>
+<body>
+
+<h2>Emergency Vehicle Routing</h2>
+
+<label>Start Node:</label>
+<input type="text" id="startNode" placeholder="Enter node (e.g. A)" />
+<label>
+  <input type="checkbox" id="mlToggle" checked />
+  Enable ML
+</label>
+
+<button onclick="findRoute()">Find Nearest Hospital</button>
+
+<h3>Result:</h3>
+<pre id="output"></pre>
+
+<script>
+async function findRoute() {
+    const node = document.getElementById("startNode").value;
+
+    document.getElementById("output").textContent = "Loading...";
+
+    try {
+        const useML = document.getElementById("mlToggle").checked;
+        const response = await fetch(
+            `/nearest-hospital?start_node=${node}&use_ml=${useML}`
+        );
+
+        const data = await response.json();
+
+        document.getElementById("output").textContent =
+            `Hospital: ${data.hospital_id}\n` +
+            `Path: ${data.path.join(" → ")}\n` +
+            `ML Time: ${data.ml_time.toFixed(2)} minutes\n` +
+            `Base Time: ${data.base_time.toFixed(2)} minutes\n` +
+            `Difference: ${(data.ml_time - data.base_time).toFixed(2)} minutes`;
+
+
+    } catch (error) {
+        document.getElementById("output").textContent = "Error fetching route.";
+    }
+}
+</script>
+
+</body>
+</html>
