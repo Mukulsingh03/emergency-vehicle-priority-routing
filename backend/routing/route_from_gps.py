@@ -7,6 +7,12 @@ from signals.preemption import (
     release_signal_if_passed
 )
 
+def simulate_actual_time(estimated_time, num_signals, is_peak):
+    raise NotImplementedError
+
+def log_route_data(route_length, num_signals, estimated_time, actual_time):
+    raise NotImplementedError
+
 def compute_route_from_gps(lat, lon, redis_client, ambulance_id):
     current_node = find_nearest_node(lat, lon)
 

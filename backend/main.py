@@ -1,13 +1,13 @@
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 from routing.deviation import has_deviated
-from routing.route_from_gps import compute_route_from_gps
 from routing.route_from_gps import compute_route_from_gps
 from routing.nearest_hospital import find_nearest_hospital
 from routing.nearest_node import find_nearest_node
 from routing.sample_map import create_sample_graph
 from routing.dijkstra import dijkstra
-from fastapi import FastAPI
+from fastapi import Body, FastAPI, Request
 from pydantic import BaseModel
 import redis
 from time import time 
@@ -20,9 +20,11 @@ app= FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-@app.get("/")
-def serve_frontend():
-    return FileResponse("static/index.html")
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 #connect to redis
 redis_client = redis.Redis(
@@ -143,6 +145,44 @@ def monitor_ambulances():
                 cancel_all_signals(redis_client, ambulance_id)
         time.sleep(2)
         
+@app.post("/compute-route")
+async def compute_dashboard_route(payload: dict = Body(...)):
 
+    start_node = payload["start_node"]
+    enable_ml = payload["enable_ml"]
+
+    result = find_nearest_hospital(start_node, enable_ml)
+
+    return result
+
+
+@app.get("/graph")
+def get_graph():
+
+    graph_obj = create_sample_graph()
+    adjacency = graph_obj.adj   # <-- THIS is correct attribute
+
+    edges = []
+    seen = set()  # prevent duplicate undirected edges
+
+    for node, neighbors in adjacency.items():
+        for edge in neighbors:
+            neighbor = edge["to"]
+
+            # create sorted tuple to avoid duplicates
+            edge_key = tuple(sorted([node, neighbor]))
+
+            if edge_key not in seen:
+                seen.add(edge_key)
+                edges.append({
+                    "source": node,
+                    "target": neighbor
+                })
+
+    return {
+        "nodes": list(adjacency.keys()),
+        "edges": edges
+    }
 
 threading.Thread(target=monitor_ambulances, daemon=True).start()
+

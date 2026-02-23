@@ -1,0 +1,116 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+.app {
+    padding: 40px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.header h1 {
+    margin: 0;
+}
+
+.system-badge {
+    background: #1e40af;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 30px;
+}
+
+.panel {
+    background: #1e293b;
+    padding: 30px;
+    border-radius: 14px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+}
+
+.panel h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+}
+
+.control-panel input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    border: none;
+    background: #334155;
+    color: white;
+}
+
+.toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.primary-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.primary-btn:hover {
+    transform: scale(1.02);
+}
+
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.metric-card {
+    background: #334155;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.metric-label {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-bottom: 6px;
+}
+
+.metric-value {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.highlight-blue {
+    border-left: 4px solid #3b82f6;
+}
+
+.highlight-red {
+    border-left: 4px solid #ef4444;
+}

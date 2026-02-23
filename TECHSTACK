@@ -1,0 +1,86 @@
+TECH STACK
+Frontend
+
+Purpose: Visualization & control (not business logic)
+
+React.js
+
+Mapbox GL JS (or Google Maps API)
+
+WebSockets (live updates)
+
+Basic CSS / Tailwind (optional)
+
+Why this works:
+
+Lightweight
+
+Industry-standard
+
+No UI time sink
+
+Backend
+
+Purpose: Core system intelligence
+
+Python + FastAPI
+
+WebSockets + REST APIs
+
+Redis (real-time state, TTL, locks)
+
+PostgreSQL (persistent data)
+
+AsyncIO (concurrent telemetry handling)
+
+Why recruiters like this:
+
+Clear separation of concerns
+
+Real-time capable
+
+Scalable design
+
+Routing & Systems Logic
+
+A* (primary) / Dijkstra (fallback)
+
+Graph-based road network
+
+Finite State Machines (FSM) for signals
+
+Priority-based conflict resolution
+
+This shows strong CS fundamentals.
+
+Machine Learning
+
+Scope: ETA delay prediction only
+
+Scikit-learn
+
+Gradient Boosting / Random Forest
+
+Synthetic traffic simulation data
+
+Feature importance analysis
+
+No deep learning. No fake AI.
+
+Simulation & Evaluation
+
+Custom traffic & signal simulator
+
+Performance metrics logging
+
+Scenario testing (failures, conflicts)
+
+Dev & Tooling
+
+Git + GitHub
+
+Docker (optional but nice)
+
+pytest
+
+Matplotlib (metrics plots)

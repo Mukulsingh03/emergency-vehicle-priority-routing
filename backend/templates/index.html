@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emergency Routing Control Panel</title>
+    <link rel="stylesheet" href="/static/dashboard.css">
+
+    <!-- Cytoscape CDN -->
+    <script src="/static/js/cytoscape.min.js"></script>
+</head>
+<body>
+
+<div class="app">
+
+    <header class="header">
+        <h1>Emergency Routing Control Panel</h1>
+        <span class="system-badge">ML Congestion Engine Active</span>
+    </header>
+
+    <div class="dashboard">
+
+        <!-- LEFT PANEL -->
+        <div class="panel control-panel">
+            <h2>Route Controls</h2>
+
+            <label>Start Node</label>
+            <input type="text" placeholder="Enter start node (e.g., A, B, C)">
+
+            <div class="toggle-row">
+                <input type="checkbox" checked>
+                <span>Enable ML Delay Prediction</span>
+            </div>
+
+            <button class="primary-btn">Compute Optimal Route</button>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="panel result-panel">
+            <h2>Routing Analytics</h2>
+
+            <div class="metric-grid">
+
+                <div class="metric-card">
+                    <span class="metric-label">Hospital</span>
+                    <span id="hospital" class="metric-value">--</span>
+                </div>
+
+                <div class="metric-card">
+                    <span class="metric-label">Route Path</span>
+                    <span id="path" class="metric-value">--</span>
+                </div>
+
+                <div class="metric-card highlight-blue">
+                    <span class="metric-label">ML Time</span>
+                    <span id="ml_time" class="metric-value">--</span>
+                </div>
+
+                <div class="metric-card">
+                    <span class="metric-label">Base Time</span>
+                    <span id="base_time" class="metric-value">--</span>
+                </div>
+
+                <div class="metric-card highlight-red">
+                    <span class="metric-label">Delay Impact</span>
+                    <span id="delay" class="metric-value">--</span>
+                </div>
+
+            </div>
+
+            <!-- GRAPH VISUALIZATION -->
+            <div id="graph" style="height: 400px; margin-top: 30px; border-radius: 12px; background: #0f172a;"></div>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const button = document.querySelector(".primary-btn");
+    const inputField = document.querySelector("input[type='text']");
+    const checkbox = document.querySelector("input[type='checkbox']");
+
+    let cy;
+
+    // ===============================
+    // LOAD GRAPH FROM BACKEND
+    // ===============================
+    async function loadGraph() {
+
+        const response = await fetch("/graph");
+        const data = await response.json();
+
+        const elements = [];
+
+        // Nodes
+        data.nodes.forEach(node => {
+            elements.push({
+                data: { id: node }
+            });
+        });
+
+        // Edges
+        data.edges.forEach(edge => {
+            elements.push({
+                data: {
+                    source: edge.source,
+                    target: edge.target
+                }
+            });
+        });
+
+        cy = cytoscape({
+            container: document.getElementById('graph'),
+
+            style: [
+                {
+                    selector: 'node',
+                    style: {
+                        'background-color': '#3b82f6',
+                        'label': 'data(id)',
+                        'color': '#fff',
+                        'text-valign': 'center',
+                        'text-halign': 'center'
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 2,
+                        'line-color': '#64748b',
+                        'curve-style': 'bezier'
+                    }
+                },
+                {
+                    selector: '.highlight',
+                    style: {
+                        'background-color': '#ef4444',
+                        'line-color': '#ef4444',
+                        'width': 4
+                    }
+                }
+            ],
+
+            elements: elements,
+
+            layout: {
+                name: 'cose',
+                animate: true
+            }
+        });
+    }
+
+    // ===============================
+    // HIGHLIGHT PATH
+    // ===============================
+    function highlightPath(pathArray) {
+
+        if (!cy) return;
+
+        cy.elements().removeClass('highlight');
+
+        for (let i = 0; i < pathArray.length; i++) {
+
+            cy.getElementById(pathArray[i]).addClass('highlight');
+
+            if (i < pathArray.length - 1) {
+
+                const edge = cy.edges().filter(edge =>
+                    (edge.source().id() === pathArray[i] &&
+                     edge.target().id() === pathArray[i + 1]) ||
+                    (edge.source().id() === pathArray[i + 1] &&
+                     edge.target().id() === pathArray[i])
+                );
+
+                edge.addClass('highlight');
+            }
+        }
+    }
+
+    // ===============================
+    // BUTTON CLICK
+    // ===============================
+    button.addEventListener("click", async () => {
+
+        const startNode = inputField.value.trim();
+        const enableML = checkbox.checked;
+
+        if (!startNode) {
+            alert("Please enter a start node.");
+            return;
+        }
+
+        button.innerText = "Computing...";
+        button.disabled = true;
+        button.style.opacity = "0.7";
+
+        try {
+
+            const response = await fetch("/compute-route", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    start_node: startNode,
+                    enable_ml: enableML
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("Server error");
+            }
+
+            const data = await response.json();
+
+            if (!data.path || data.path.length === 0) {
+                alert("Invalid start node or no route found.");
+                return;
+            }
+
+            const hospitalEl = document.getElementById("hospital");
+            const pathEl = document.getElementById("path");
+            const mlEl = document.getElementById("ml_time");
+            const baseEl = document.getElementById("base_time");
+            const delayEl = document.getElementById("delay");
+
+            const mlTime = data.ml_time ?? 0;
+            const baseTime = data.base_time ?? 0;
+            const delay = mlTime - baseTime;
+
+            hospitalEl.innerText = data.hospital_id;
+            pathEl.innerText = data.path.join(" → ");
+            mlEl.innerText = mlTime.toFixed(2) + " min";
+            baseEl.innerText = baseTime.toFixed(2) + " min";
+            delayEl.innerText = delay.toFixed(2) + " min";
+
+            if (delay > 0) {
+                delayEl.style.color = "#ef4444";
+            } else if (delay < 0) {
+                delayEl.style.color = "#22c55e";
+            } else {
+                delayEl.style.color = "#e2e8f0";
+            }
+
+            highlightPath(data.path);
+
+        } catch (error) {
+            console.error(error);
+            alert("Failed to compute route.");
+        } finally {
+            button.innerText = "Compute Optimal Route";
+            button.disabled = false;
+            button.style.opacity = "1";
+        }
+
+    });
+
+    // ENTER KEY SUPPORT
+    inputField.addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+            button.click();
+        }
+    });
+
+    // INITIAL GRAPH LOAD
+    loadGraph();
+
+});
+</script>
+
+</body>
+</html>
